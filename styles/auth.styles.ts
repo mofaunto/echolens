@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     appName: {
         fontSize: 40,
         fontWeight: 700,
-        fontFamily: "JetBrainsMono-Medium",
+        fontFamily: "Poppins-Bold",
         color: colors.primary,
         letterSpacing: 0.5,
         marginBottom: 8,

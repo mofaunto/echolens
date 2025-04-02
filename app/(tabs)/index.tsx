@@ -1,4 +1,5 @@
 import {
+    FlatList,
     ScrollView,
     StyleSheet,
     Text,
@@ -40,31 +41,31 @@ export default function Index() {
                 </TouchableOpacity>
             </View>
 
-            {/* Content */}
-
-            {/* Stories */}
-            <ScrollView
+            {/* Posts and stories */}
+            <FlatList
+                data={posts}
+                renderItem={({ item }) => <Post post={item} />}
+                keyExtractor={(item) => item._id}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 64 }}
-            >
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    horizontal
-                    style={styles.storiesContainer}
-                >
-                    {stories.map((story) => (
-                        <Story key={story.id} story={story} />
-                    ))}
-                </ScrollView>
-
-                {/* Posts */}
-                {posts.map((post) => (
-                    <Post key={post._id} post={post} />
-                ))}
-            </ScrollView>
+                ListHeaderComponent={<StorySection />}
+            />
         </View>
     );
 }
+
+const StorySection = () => {
+    return (
+        <FlatList
+            data={stories}
+            renderItem={({ item }) => <Story story={item} />}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            horizontal
+            contentContainerStyle={styles.storiesContainer}
+        />
+    );
+};
 
 const NoPostsFound = () => {
     return (

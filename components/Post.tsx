@@ -1,12 +1,47 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { styles } from "@/styles/feed.styles";
 import { Link } from "expo-router";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/constants/theme";
+import { Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-export default function Post({ post }: { post: any }) {
+type PostProps = {
+    post: {
+        _id: Id<"posts">;
+        imageUrl: string;
+        caption?: string;
+        likes: number;
+        comments: number;
+        _creationTime: number;
+        isLiked: boolean;
+        isSaved: boolean;
+        author: {
+            _id: string;
+            username: string;
+            image: string;
+        };
+    };
+};
+
+export default function Post({ post }: PostProps) {
+    const [isLiked, setIsLiked] = useState(post.isLiked);
+    const [likes, setLikes] = useState(post.likes);
+
+    const toggleLike = useMutation(api.posts.toggleLike);
+
+    const handleLike = async () => {
+        try {
+            const newLikeState = await toggleLike({ postId: post._id });
+            setIsLiked(newLikeState);
+            setLikes((prev) => (newLikeState ? prev + 1 : prev - 1));
+        } catch (error) {
+            console.error("Error toggling like", error);
+        }
+    };
     return (
         <View style={styles.post}>
             {/* top section of the post */}
@@ -48,11 +83,11 @@ export default function Post({ post }: { post: any }) {
             {/* actions */}
             <View style={styles.postActions}>
                 <View style={styles.postActionsLeft}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleLike}>
                         <Ionicons
-                            name="heart-outline"
+                            name={isLiked ? "heart" : "heart-outline"}
                             size={24}
-                            color={colors.white}
+                            color={isLiked ? colors.primary : colors.white}
                         />
                     </TouchableOpacity>
                     <TouchableOpacity>
@@ -75,7 +110,11 @@ export default function Post({ post }: { post: any }) {
 
             {/* post caption */}
             <View style={styles.postInfo}>
-                <Text style={styles.likesText}>Be the first to like</Text>
+                <Text style={styles.likesText}>
+                    {likes > 0
+                        ? `${likes.toLocaleString()} likes`
+                        : "Be the first to like"}
+                </Text>
                 {post.caption && (
                     <View style={styles.captionContainer}>
                         <Text style={styles.captionUsername}>
