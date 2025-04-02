@@ -65,6 +65,9 @@ export default function AddScreen() {
             const { storageId } = JSON.parse(uploadResult.body);
             await createPost({ storageId, caption });
 
+            setSelectedImage(null);
+            setCaption("");
+
             // if upload success, redirect to homepage
             router.push("/(tabs)");
         } catch (error) {
