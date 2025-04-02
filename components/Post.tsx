@@ -34,8 +34,10 @@ export default function Post({ post }: PostProps) {
     const [likes, setLikes] = useState(post.likes);
     const [comments, setComments] = useState(post.comments);
     const [showComments, setShowComments] = useState(false);
+    const [isSaved, setIsSaved] = useState(post.isSaved);
 
     const toggleLike = useMutation(api.posts.toggleLike);
+    const toggleSave = useMutation(api.saves.toggleSave);
 
     const handleLike = async () => {
         try {
@@ -46,6 +48,12 @@ export default function Post({ post }: PostProps) {
             console.error("Error toggling like", error);
         }
     };
+
+    const handleSave = async () => {
+        const newSavedState = await toggleSave({ postId: post._id });
+        setIsSaved(newSavedState);
+    };
+
     return (
         <View style={styles.post}>
             {/* top section of the post */}
@@ -103,11 +111,11 @@ export default function Post({ post }: PostProps) {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleSave}>
                     <Ionicons
-                        name="bookmark-outline"
+                        name={isSaved ? "bookmark" : "bookmark-outline"}
                         size={24}
-                        color={colors.white}
+                        color={isSaved ? colors.primary : colors.white}
                     />
                 </TouchableOpacity>
             </View>
