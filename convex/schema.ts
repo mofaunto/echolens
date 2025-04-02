@@ -54,7 +54,9 @@ export default defineSchema({
         ),
         postId: v.optional(v.id("posts")),
         commentId: v.optional(v.id("comments")),
-    }).index("by_receiver", ["receiverId"]),
+    })
+        .index("by_receiver", ["receiverId"])
+        .index("by_post", ["postId"]),
 
     saves: defineTable({
         userId: v.id("users"),
