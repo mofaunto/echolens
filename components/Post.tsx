@@ -8,6 +8,8 @@ import { colors } from "@/constants/theme";
 import { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import CommentModal from "./CommentModal";
+import { formatDistanceToNow } from "date-fns";
 
 type PostProps = {
     post: {
@@ -30,6 +32,8 @@ type PostProps = {
 export default function Post({ post }: PostProps) {
     const [isLiked, setIsLiked] = useState(post.isLiked);
     const [likes, setLikes] = useState(post.likes);
+    const [comments, setComments] = useState(post.comments);
+    const [showComments, setShowComments] = useState(false);
 
     const toggleLike = useMutation(api.posts.toggleLike);
 
@@ -90,7 +94,7 @@ export default function Post({ post }: PostProps) {
                             color={isLiked ? colors.primary : colors.white}
                         />
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => setShowComments(true)}>
                         <Ionicons
                             name="chatbubble-outline"
                             size={24}
@@ -124,11 +128,27 @@ export default function Post({ post }: PostProps) {
                     </View>
                 )}
 
-                <TouchableOpacity>
-                    <Text style={styles.commentText}>View all comments</Text>
-                </TouchableOpacity>
-                <Text style={styles.timeAgo}>2 hours ago</Text>
+                {comments > 0 && (
+                    <TouchableOpacity onPress={() => setShowComments(true)}>
+                        <Text style={styles.commentsText}>
+                            View all {comments} comments
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
+                <Text style={styles.timeAgo}>
+                    {formatDistanceToNow(post._creationTime, {
+                        addSuffix: true,
+                    })}
+                </Text>
             </View>
+
+            <CommentModal
+                postId={post._id}
+                visible={showComments}
+                onClose={() => setShowComments(false)}
+                onCommentAdded={() => setComments((prev) => prev + 1)}
+            />
         </View>
     );
 }
