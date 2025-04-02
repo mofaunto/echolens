@@ -49,6 +49,23 @@ export const getUserByClerkId = query({
     },
 });
 
+export const updateUser = mutation({
+    args: {
+        name: v.string(),
+        bio: v.optional(v.string()),
+    },
+
+    handler: async (ctx, args) => {
+        const currentUser = await getAuthenticatedUser(ctx);
+
+        //post user
+        await ctx.db.patch(currentUser._id, {
+            name: args.name,
+            bio: args.bio,
+        });
+    },
+});
+
 export async function getAuthenticatedUser(ctx: QueryCtx | MutationCtx) {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("No authorization done");

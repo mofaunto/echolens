@@ -48,24 +48,25 @@ export default function Index() {
                 keyExtractor={(item) => item._id}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 64 }}
-                ListHeaderComponent={<StorySection />}
+                // ListHeaderComponent={<StorySection />}
             />
         </View>
     );
 }
 
-const StorySection = () => {
-    return (
-        <FlatList
-            data={stories}
-            renderItem={({ item }) => <Story story={item} />}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            horizontal
-            contentContainerStyle={styles.storiesContainer}
-        />
-    );
-};
+// To be implemented later
+// const StorySection = () => {
+//     return (
+//         <FlatList
+//             data={stories}
+//             renderItem={({ item }) => <Story story={item} />}
+//             keyExtractor={(item) => item.id}
+//             showsVerticalScrollIndicator={false}
+//             horizontal
+//             contentContainerStyle={styles.storiesContainer}
+//         />
+//     );
+// };
 
 const NoPostsFound = () => {
     return (
