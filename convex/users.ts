@@ -1,3 +1,4 @@
+import { Id } from "./_generated/dataModel";
 import { mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -66,6 +67,109 @@ export const updateUser = mutation({
     },
 });
 
+export const getUserProfile = query({
+    args: {
+        id: v.id("users"),
+    },
+
+    handler: async (ctx, args) => {
+        const user = await ctx.db.get(args.id);
+        if (!user) throw new Error("User not found");
+
+        return user;
+    },
+});
+
+export const getPostsByUser = query({
+    args: {
+        userId: v.optional(v.id("users")),
+    },
+
+    handler: async (ctx, args) => {
+        const user = args.userId
+            ? await ctx.db.get(args.userId)
+            : await getAuthenticatedUser(ctx);
+
+        if (!user) throw new Error("User not found");
+
+        const posts = await ctx.db
+            .query("posts")
+            .withIndex("by_user", (q) =>
+                q.eq("userId", args.userId || user._id),
+            )
+            .collect();
+
+        return posts;
+    },
+});
+
+export const isFollowing = query({
+    args: {
+        followingId: v.id("users"),
+    },
+
+    handler: async (ctx, args) => {
+        const currentUser = await getAuthenticatedUser(ctx);
+
+        const follow = await ctx.db
+            .query("follows")
+            .withIndex("by_both", (q) =>
+                q
+                    .eq("followerId", currentUser._id)
+                    .eq("followingId", args.followingId),
+            )
+            .first();
+
+        return !!follow;
+    },
+});
+
+export const toggleFollow = mutation({
+    args: {
+        followingId: v.id("users"),
+    },
+
+    handler: async (ctx, args) => {
+        const currentUser = await getAuthenticatedUser(ctx);
+
+        const existingFollow = await ctx.db
+            .query("follows")
+            .withIndex("by_both", (q) =>
+                q
+                    .eq("followerId", currentUser._id)
+                    .eq("followingId", args.followingId),
+            )
+            .first();
+
+        if (existingFollow) {
+            await ctx.db.delete(existingFollow._id);
+            await updateFollowCounts(
+                ctx,
+                currentUser._id,
+                args.followingId,
+                false,
+            );
+        } else {
+            await ctx.db.insert("follows", {
+                followerId: currentUser._id,
+                followingId: args.followingId,
+            });
+            await updateFollowCounts(
+                ctx,
+                currentUser._id,
+                args.followingId,
+                true,
+            );
+
+            await ctx.db.insert("notifications", {
+                receiverId: args.followingId,
+                senderId: currentUser._id,
+                type: "follow",
+            });
+        }
+    },
+});
+
 export async function getAuthenticatedUser(ctx: QueryCtx | MutationCtx) {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("No authorization done");
@@ -78,4 +182,23 @@ export async function getAuthenticatedUser(ctx: QueryCtx | MutationCtx) {
     if (!currentUser) throw new Error("User not found"); //otherwise TS thinks it is null
 
     return currentUser;
+}
+
+async function updateFollowCounts(
+    ctx: MutationCtx,
+    followerId: Id<"users">,
+    followingId: Id<"users">,
+    isFollow: boolean,
+) {
+    const follower = await ctx.db.get(followerId);
+    const following = await ctx.db.get(followingId);
+
+    if (follower && following) {
+        await ctx.db.patch(followerId, {
+            following: follower.following + (isFollow ? 1 : -1),
+        });
+        await ctx.db.patch(followingId, {
+            followers: following.followers + (isFollow ? 1 : -1),
+        });
+    }
 }

@@ -15,15 +15,16 @@ import React, { useState } from "react";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Doc } from "@/convex/_generated/dataModel";
 import Loader from "@/components/Loader";
 import { styles } from "@/styles/profile.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/constants/theme";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 
 export default function Profile() {
     const { signOut, userId } = useAuth();
+    const router = useRouter();
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const currentUser = useQuery(
         api.users.getUserByClerkId,
@@ -36,8 +37,7 @@ export default function Profile() {
         bio: currentUser?.bio || "",
     });
 
-    const [selectedPost, setSelectedPost] = useState<Doc<"posts"> | null>(null);
-    const posts = useQuery(api.posts.getPostsByUser, {});
+    const posts = useQuery(api.users.getPostsByUser, {});
 
     const handleSaveProfile = async () => {
         await updateProfile(editedProfile);
@@ -121,7 +121,7 @@ export default function Profile() {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={styles.gridItem}
-                            onPress={() => setSelectedPost(item)}
+                            onPress={() => router.push(`/post/${item._id}`)}
                         >
                             <Image
                                 source={item.imageUrl}
@@ -208,38 +208,6 @@ export default function Profile() {
                         </View>
                     </KeyboardAvoidingView>
                 </TouchableWithoutFeedback>
-            </Modal>
-
-            {/* Image modal, need to later return the post itself with comments and likes for better UX, gotta do same for saved posts */}
-            <Modal
-                visible={!!selectedPost}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setSelectedPost(null)}
-            >
-                <View style={styles.modalBackdrop}>
-                    {selectedPost && (
-                        <View style={styles.postDetailContainer}>
-                            <View style={styles.postDetailHeader}>
-                                <TouchableOpacity
-                                    onPress={() => setSelectedPost(null)}
-                                >
-                                    <Ionicons
-                                        name="close"
-                                        size={24}
-                                        color={colors.white}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-
-                            <Image
-                                source={selectedPost.imageUrl}
-                                cachePolicy="memory-disk"
-                                style={styles.postDetailImage}
-                            />
-                        </View>
-                    )}
-                </View>
             </Modal>
         </View>
     );

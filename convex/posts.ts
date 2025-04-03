@@ -86,6 +86,41 @@ export const getPosts = query({
     },
 });
 
+export const getPostById = query({
+    args: { postId: v.id("posts") },
+    handler: async (ctx, { postId }) => {
+        const currentUser = await getAuthenticatedUser(ctx);
+        const post = await ctx.db.get(postId);
+        if (!post) throw new Error("Post not found");
+
+        const postAuthor = (await ctx.db.get(post.userId))!;
+        const postLiked = await ctx.db
+            .query("likes")
+            .withIndex("by_user_and_post", (q) =>
+                q.eq("userId", currentUser._id).eq("postId", post._id),
+            )
+            .first();
+
+        const postSaved = await ctx.db
+            .query("saves")
+            .withIndex("by_user_and_post", (q) =>
+                q.eq("userId", currentUser._id).eq("postId", post._id),
+            )
+            .first();
+
+        return {
+            ...post,
+            author: {
+                _id: postAuthor._id,
+                username: postAuthor.username,
+                image: postAuthor.image,
+            },
+            isLiked: !!postLiked,
+            isSaved: !!postSaved,
+        };
+    },
+});
+
 export const patchPost = mutation({
     args: {
         postId: v.id("posts"),
@@ -216,28 +251,5 @@ export const toggleLike = mutation({
             }
             return true;
         }
-    },
-});
-
-export const getPostsByUser = query({
-    args: {
-        userId: v.optional(v.id("users")),
-    },
-
-    handler: async (ctx, args) => {
-        const user = args.userId
-            ? await ctx.db.get(args.userId)
-            : await getAuthenticatedUser(ctx);
-
-        if (!user) throw new Error("User not found");
-
-        const posts = await ctx.db
-            .query("posts")
-            .withIndex("by_user", (q) =>
-                q.eq("userId", args.userId || user._id),
-            )
-            .collect();
-
-        return posts;
     },
 });

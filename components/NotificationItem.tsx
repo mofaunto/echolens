@@ -3,16 +3,17 @@ import { styles } from "@/styles/notifications.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDistanceToNow } from "date-fns";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function NotificationItem({ notification }: any) {
+    const router = useRouter();
+
     return (
         <View style={styles.notificationItem}>
             <View style={styles.notificationContent}>
-                {/* gotta put correct url later */}
-                <Link href={`/notifications`} asChild>
+                <Link href={`/user/${notification.sender._id}`} asChild>
                     <TouchableOpacity style={styles.avatarContainer}>
                         <Image
                             source={notification.sender.image}
@@ -46,7 +47,7 @@ export default function NotificationItem({ notification }: any) {
                 </Link>
 
                 <View style={styles.notificationInfo}>
-                    <Link href={`/notifications`} asChild>
+                    <Link href={`/user/${notification.sender._id}`} asChild>
                         <TouchableOpacity>
                             <Text style={styles.username}>
                                 {notification.sender.username}
@@ -71,12 +72,16 @@ export default function NotificationItem({ notification }: any) {
             </View>
 
             {notification.postId && (
-                <Image
-                    source={notification.post.imageUrl}
-                    style={styles.postImage}
-                    contentFit="cover"
-                    transition={200}
-                />
+                <TouchableOpacity
+                    onPress={() => router.push(`/post/${notification.postId}`)}
+                >
+                    <Image
+                        source={notification.post.imageUrl}
+                        style={styles.postImage}
+                        contentFit="cover"
+                        transition={200}
+                    />
+                </TouchableOpacity>
             )}
         </View>
     );

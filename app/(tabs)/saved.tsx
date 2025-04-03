@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -6,9 +6,11 @@ import Loader from "@/components/Loader";
 import { colors } from "@/constants/theme";
 import { styles } from "@/styles/feed.styles";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 
 export default function Saved() {
     const savedPosts = useQuery(api.saves.getSaves);
+    const router = useRouter();
 
     if (savedPosts === undefined) return <Loader />;
     if (savedPosts.length === 0) return <NoSavesFound />;
@@ -34,13 +36,17 @@ export default function Saved() {
                             key={post._id}
                             style={{ width: "33.33%", padding: 1 }}
                         >
-                            <Image
-                                source={post.imageUrl}
-                                style={{ width: "100%", aspectRatio: 1 }}
-                                contentFit="cover"
-                                transition={200}
-                                cachePolicy="memory-disk"
-                            />
+                            <TouchableOpacity
+                                onPress={() => router.push(`/post/${post._id}`)}
+                            >
+                                <Image
+                                    source={post.imageUrl}
+                                    style={{ width: "100%", aspectRatio: 1 }}
+                                    contentFit="cover"
+                                    transition={200}
+                                    cachePolicy="memory-disk"
+                                />
+                            </TouchableOpacity>
                         </View>
                     );
                 })}
