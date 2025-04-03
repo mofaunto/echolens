@@ -1,6 +1,10 @@
 # EchoLens - picture sharing social network, built with React Native & Expo
 
-The project can be viewed through: ___
+The project can be viewed through: https://mofauntou-echolens--rotrn9soxz.expo.app
+
+Since some native features do not work on Web, You can also download the apk file to tets on your Android device: https://drive.google.com/drive/folders/1N4sN80ljL_Nr4cKmGnLaENeflWV9MwQS?usp=sharing
+
+You can test the web version of the project by emulating the mobile screens in the browser. Or freely use it on the phone.
 
 ## Tech Stack:
 
